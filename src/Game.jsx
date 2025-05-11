@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import castleImg from "./Assets/castle.png";
 import forestImg from "./Assets/forest.png";
 import homeImg from "./Assets/home.png";
@@ -28,7 +27,7 @@ const CHAR_W = 32;
 const CHAR_H = 32;
 const CHAR_PER_ROW = 8;
 
-const invalidIndexes = [5, 6, 7, 13, 14, 15, 23, 30, 31, 38, 39]; //unusable charecters
+const invalidIndexes = [5, 6, 7, 13, 14, 15, 23, 30, 31, 38, 39];
 
 const char_name = [
   "Aeloria", "Thorne", "Nyx", "Zephra", "Kael", "Isolde", "Drazhar", "Elowen",
@@ -48,11 +47,9 @@ const valid_char = Array.from({ length: 40 }, (_, index) => {
   };
 })
   .filter((c) => !invalidIndexes.includes(c.index))
-  .filter((c) => c.name !== "Nimue"); // removed empty charecter
+  .filter((c) => c.name !== "Nimue");
 
 const characters = valid_char.slice(0, 28);
-
-
 
 function Game() {
   const [command, setCommand] = useState("");
@@ -64,7 +61,28 @@ function Game() {
     return { x, y };
   });
 
-  const parseIntent = (command) => {
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      window.__testingHooks = {
+        getCurrentPosition: () => position,
+        getCurrentCommand: () => command,
+        getSelectedCharacter: () => selectedCharacter,
+        simulateCommand: (cmd) => {
+          setCommand(cmd);
+          const parsed = parseIntent(cmd);
+          handleCommand(parsed);
+        }
+      };
+    }
+
+    return () => {
+      if (process.env.NODE_ENV === 'development') {
+        delete window.__testingHooks;
+      }
+    };
+  }, [position, command, selectedCharacter]);
+
+  function parseIntent(command) {
     command = command.toLowerCase();
     if (command.includes("go to")) {
       const location = command.split("go to")[1].trim();
@@ -78,7 +96,7 @@ function Game() {
     } else {
       return { action: "unknown", target: null };
     }
-  };
+  }
 
   const getHint = (x, y) => {
     const tileName = grid[y][x];
@@ -128,9 +146,7 @@ function Game() {
       },
     };
 
-    return (
-      dynamicHints[tileName]?.[diamondTile] || "You sense nothing unusual..."
-    );
+    return dynamicHints[tileName]?.[diamondTile] || "You sense nothing unusual...";
   };
 
   const handleCommand = (parsed) => {
@@ -190,7 +206,7 @@ function Game() {
   });
 
   const previewCharacterStyles = (char) => ({
-    width: `${CHAR_W * 2}px`, 
+    width: `${CHAR_W * 2}px`,
     height: `${CHAR_H * 2}px`,
     backgroundImage: `url(${characterImg})`,
     backgroundPosition: `-${char.position.col * CHAR_W}px -${char.position.row * CHAR_H}px`,
@@ -199,64 +215,63 @@ function Game() {
     imageRendering: "pixelated",
   });
 
-if (!selectedCharacter) {
-  return (
-    <div className="game-container">
-      <h1>🧙 Spell Bound: An Audible Quest</h1>
-      <h2>Choose Your Character</h2>
-      <div className="character-grid">
-        {characters.map((char, index) => (
-          <button 
-  key={index} 
-  onClick={() => setSelectedCharacter(char)}
-  style={{
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100px',
-    height: '100px',
-    margin: '5px',
-    border: '2px solid #ccc',
-    backgroundColor: '#f9f9f9',
-    position: 'relative',
-  }}
->
-  <div
-    style={{
-      width: `${CHAR_W}px`,
-      height: `${CHAR_H}px`,
-      backgroundImage: `url(${characterImg})`,
-      backgroundPosition: `-${char.position.col * CHAR_W}px -${char.position.row * CHAR_H}px`,
-      backgroundSize: 'auto',
-      imageRendering: 'pixelated',
-      marginBottom: '4px',
-    }}
-  />
-  <div
-    style={{
-      fontSize: '10px',
-      textAlign: 'center',
-      color: '#333',
-      wordBreak: 'break-word',
-    }}
-  >
-    {char.name}
-  </div>
-</button>
-
-        ))}
+  if (!selectedCharacter) {
+    return (
+      <div className="game-container">
+        <h1>🧙 Spell Bound: An Audible Quest</h1>
+        <h2>Choose Your Character</h2>
+        <div className="character-grid">
+          {characters.map((char, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedCharacter(char)}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100px',
+                height: '100px',
+                margin: '5px',
+                border: '2px solid #ccc',
+                backgroundColor: '#f9f9f9',
+                position: 'relative',
+              }}
+            >
+              <div
+                style={{
+                  width: `${CHAR_W}px`,
+                  height: `${CHAR_H}px`,
+                  backgroundImage: `url(${characterImg})`,
+                  backgroundPosition: `-${char.position.col * CHAR_W}px -${char.position.row * CHAR_H}px`,
+                  backgroundSize: 'auto',
+                  imageRendering: 'pixelated',
+                  marginBottom: '4px',
+                }}
+              />
+              <div
+                style={{
+                  fontSize: '10px',
+                  textAlign: 'center',
+                  color: '#333',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {char.name}
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div className="game-container">
       <h1>🧙 Spell Bound: An Audible Quest </h1>
       <button onClick={startListening}>🎤 Speak Command</button>
       <p>
-       <strong>To move your charecter say "Go to" and the location you wish to move to.</strong> {command}
+        <strong>To move your character say "Go to" and the location you wish to move to.</strong> {command}
       </p>
       <p>
         <strong>Last Command:</strong> {command}
@@ -285,7 +300,6 @@ if (!selectedCharacter) {
                   flexDirection: "column",
                 }}
               >
-                {/* Label overlay */}
                 <div
                   style={{
                     backgroundColor: "rgba(0, 0, 0, 0.6)",
@@ -325,7 +339,7 @@ if (!selectedCharacter) {
           alert("🔄 A new diamond has been hidden. Begin your search!");
         }}
       >
-        🔁 Restart Game
+        🔁 Reset Diamond
       </button>
     </div>
   );
