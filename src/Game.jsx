@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import castleImg from "./Assets/castle.png";
-import forestImg from "./Assets/forest.png";
-import homeImg from "./Assets/home.png";
-import mountainImg from "./Assets/mountain.png";
-import characterImg from "./Assets/rogues.png";
-import villageImg from "./Assets/village.png";
-import waterImg from "./Assets/water.png";
+import castleImg from "./assets/castle.png";
+import forestImg from "./assets/forest.png";
+import homeImg from "./assets/home.png";
+import mountainImg from "./assets/mountain.png";
+import characterImg from "./assets/rogues.png";
+import villageImg from "./assets/village.png";
+import waterImg from "./assets/water.png";
 import "./Game.css";
 import recognition from "./SpeechRecognition";
 
